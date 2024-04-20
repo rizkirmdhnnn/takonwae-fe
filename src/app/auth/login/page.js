@@ -2,40 +2,49 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import setCookie from "@/app/setCookie";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [successPopup, setSuccessPopup] = useState(false);
+  const [errorPopup, setErrorPopup] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(""); // New state to store error message
+  const router = useRouter();
 
   const handleLogin = async () => {
+    setLoading(true);
     try {
-      const response = await fetch(
-        "https://takonwae-api.rizpedia.com/api/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ username, password }),
-        }
-      );
+      const response = await fetch("http://localhost:8080/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
       const responseData = await response.json();
-      const userData = responseData.data;
-
       if (response.ok) {
-        // Redirect to dashboard on successful login
-        setCookie("token", userData.token, 1);
+        console.log(responseData.data.token);
+        Cookies.set("takonwae-token", responseData.data.token);
+        localStorage.setItem("token", responseData.data.token);
+        // setSuccessPopup(true);
+        router.push("/dashboard"); // Redirect to dashboard on successful login
       } else {
         // Handle login error
         console.error("Login failed:", responseData.message);
+        setErrorMessage(responseData.message);
+        setErrorPopup(true);
       }
     } catch (error) {
       console.error("Error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,7 +89,7 @@ export default function LoginPage() {
               />
             </div>
             <Button type="button" className="w-full" onClick={handleLogin}>
-              Masuk
+              {loading ? "Loading..." : "Masuk"}
             </Button>
           </div>
           <div className="mt-4 text-center text-sm">
@@ -100,6 +109,27 @@ export default function LoginPage() {
           className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
         />
       </div>
+      {successPopup && (
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-500 bg-opacity-50">
+          <div className="bg-gray-800 p-6 rounded-md">
+            <p>Selamat datang</p>
+          </div>
+        </div>
+      )}
+      {errorPopup && (
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-500 bg-opacity-50">
+          <div className="bg-gray-800 p-6 rounded-md">
+            <p>{errorMessage}</p> {/* Show error message */}
+            <Button
+              type="button"
+              className="w-full mt-5"
+              onClick={() => setErrorPopup(false)}
+            >
+              Tutup
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

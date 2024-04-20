@@ -1,3 +1,4 @@
+"use client";
 import Navbar from "@/components/landingPage/navbar";
 import { buttonVariants, Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -10,8 +11,36 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import React from "react";
+import Cookies from "js-cookie";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 function DashboardPage() {
+  const router = useRouter();
+  const [messages, setMessages] = React.useState([]);
+
+  useEffect(() => {
+    const token = Cookies.get("takonwae-token");
+
+    async function fetchData() {
+      const res = await fetch("http://localhost:8080/api/messages", {
+        headers: {
+          Authorization: token,
+        },
+      });
+
+      if (!res.ok) {
+        router.push("/auth/login");
+      }
+
+      const data = await res.json();
+      console.log(data.Data);
+      setMessages(data.Data);
+      // Lakukan sesuatu dengan data
+    }
+
+    fetchData();
+  }, [router]);
   return (
     <div>
       <Navbar />
@@ -68,78 +97,20 @@ function DashboardPage() {
           Ada Pertanyaan yang belum dijawab
         </h1>
         <div className="flex flex-col gap-3 md:grid md:grid-cols-2 xl:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-2xl font-bold">
-                Pertanyaan #1
-              </CardTitle>
-              <CardDescription>23 Feb 2023, 12:34</CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-between items-center ">
-              <p className="text-l">Kamu udah punya pacar belum?</p>
-              <Button variant={"outline"}>Sudah dibaca</Button>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-2xl font-bold">
-                Pertanyaan #1
-              </CardTitle>
-              <CardDescription>23 Feb 2023, 12:34</CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-between items-center ">
-              <p className="text-l">Kamu udah punya pacar belum?</p>
-              <Button variant={"outline"}>Sudah dibaca</Button>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-2xl font-bold">
-                Pertanyaan #1
-              </CardTitle>
-              <CardDescription>23 Feb 2023, 12:34</CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-between items-center ">
-              <p className="text-l">Kamu udah punya pacar belum?</p>
-              <Button variant={"outline"}>Sudah dibaca</Button>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-2xl font-bold">
-                Pertanyaan #1
-              </CardTitle>
-              <CardDescription>23 Feb 2023, 12:34</CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-between items-center ">
-              <p className="text-l">Kamu udah punya pacar belum?</p>
-              <Button variant={"outline"}>Sudah dibaca</Button>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-2xl font-bold">
-                Pertanyaan #1
-              </CardTitle>
-              <CardDescription>23 Feb 2023, 12:34</CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-between items-center ">
-              <p className="text-l">Kamu udah punya pacar belum?</p>
-              <Button variant={"outline"}>Sudah dibaca</Button>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-2xl font-bold">
-                Pertanyaan #1
-              </CardTitle>
-              <CardDescription>23 Feb 2023, 12:34</CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-between items-center ">
-              <p className="text-l">Kamu udah punya pacar belum?</p>
-              <Button variant={"outline"}>Sudah dibaca</Button>
-            </CardContent>
-          </Card>
+          {messages.map((message) => (
+            <Card key={message.id}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-2xl font-bold">
+                  {message.id}
+                </CardTitle>
+                <CardDescription>{message.created_at}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex justify-between items-center ">
+                <p className="text-l">{message.content}</p>
+                <Button variant={"outline"}>Sudah dibaca</Button>
+              </CardContent>
+            </Card>
+          ))}
         </div>
         <div className="flex items-center justify-center my-5">
           <Button>Lihat selengkapnya</Button>
